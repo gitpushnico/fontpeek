@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FontPeek — Inspect Typography on Any Website</title>
+<meta name="description" content="Hover over any element on any website and instantly reveal its typography. 100% client-side bookmarklet — nothing leaves your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Unbounded:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #050505;
+  --surface: #0d0d0d;
+  --surface2: #141414;
+  --border: #1f1f1f;
+  --border2: #2a2a2a;
+  --accent: #b8ff57;
+  --accent-dim: rgba(184,255,87,0.07);
+  --accent-glow: rgba(184,255,87,0.15);
+  --text: #efefef;
+  --text-mid: #888;
+  --text-dim: #444;
+  --display: 'Unbounded', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+.page { max-width: 720px; margin: 0 auto; padding: 52px 24px 100px; }
+
+/* Header */
+.header { margin-bottom: 60px; animation: fadeUp 0.5s ease both; }
+.logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-mark svg { width: 20px; height: 20px; }
+.logo-text { font-family: var(--display); font-weight: 900; font-size: 22px; letter-spacing: -1px; color: var(--text); }
+.logo-version {
+  font-size: 10px; color: var(--text-dim);
+  border: 1px solid var(--border2);
+  padding: 2px 7px; border-radius: 3px; letter-spacing: 1px; align-self: center;
+}
+.header-desc { color: var(--text-mid); font-size: 12px; max-width: 480px; line-height: 1.8; }
+.trust-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 18px; }
+.trust-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 100px; padding: 4px 11px;
+  font-size: 10px; color: var(--text-mid); letter-spacing: 0.5px;
+}
+.trust-pill .dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Bookmarklet zone */
+.bm-zone {
+  border: 1.5px dashed var(--border2);
+  border-radius: 16px; padding: 48px 32px;
+  text-align: center; background: var(--surface);
+  position: relative; overflow: hidden;
+  animation: fadeUp 0.5s 0.1s ease both;
+  margin-bottom: 28px;
+  transition: border-color 0.18s, background 0.18s;
+}
+.bm-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
+.bm-icon-wrap {
+  width: 68px; height: 68px; margin: 0 auto 20px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+}
+.bm-icon-wrap svg { width: 28px; height: 28px; stroke: var(--accent); }
+.bm-title { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: -0.5px; margin-bottom: 8px; }
+.bm-sub { color: var(--text-mid); font-size: 12px; line-height: 1.8; margin-bottom: 28px; }
+.bm-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--accent); color: #050505;
+  font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.3px;
+  padding: 13px 24px; border-radius: 10px;
+  cursor: grab; text-decoration: none; border: none;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+.bm-btn:hover { background: #c9ff6a; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(184,255,87,0.2); }
+.bm-btn:active { cursor: grabbing; transform: translateY(0); }
+.bm-hint { margin-top: 18px; font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.7; }
+.bm-buttons { display: flex; gap: 10px; justify-content: center; align-items: center; }
+.bm-copy-btn {
+  background: none;
+  border: 1.5px dashed var(--border2);
+  color: var(--text-mid);
+  font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.3px;
+  padding: 13px 24px; border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.bm-copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Section label */
+.section-label {
+  font-family: var(--display); font-size: 10px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px;
+}
+
+/* How it works */
+.how-list { display: flex; flex-direction: column; animation: fadeUp 0.5s 0.15s ease both; }
+.how-item { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.how-item:last-child { border-bottom: none; }
+.how-num { font-family: var(--display); font-weight: 900; font-size: 20px; color: var(--accent); min-width: 32px; line-height: 1.2; }
+.how-text strong { display: block; font-size: 12px; color: var(--text); margin-bottom: 3px; }
+.how-text span { font-size: 11px; color: var(--text-mid); }
+
+/* Panel */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; animation: fadeUp 0.5s 0.2s ease both; }
+.panel-head { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.panel-head svg { width: 18px; height: 18px; stroke: var(--accent); flex-shrink: 0; }
+.panel-head-text { flex: 1; }
+.panel-head-title { font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.3px; }
+.panel-head-sub { font-size: 11px; color: var(--text-mid); margin-top: 2px; }
+.panel-body { padding: 16px 20px; }
+
+/* Shows grid */
+.shows-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.shows-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; }
+.shows-item svg { width: 13px; height: 13px; stroke: var(--accent); flex-shrink: 0; margin-top: 1px; }
+.shows-item-name { font-size: 11px; color: var(--text); margin-bottom: 2px; }
+.shows-item-eg { font-size: 10px; color: var(--text-dim); font-style: italic; }
+
+/* Demo zone */
+.demo-zone { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; animation: fadeUp 0.5s 0.25s ease both; }
+.demo-head { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.demo-head svg { width: 18px; height: 18px; stroke: var(--accent); flex-shrink: 0; }
+.demo-head-title { font-family: var(--display); font-weight: 700; font-size: 12px; }
+.demo-head-sub { font-size: 11px; color: var(--text-mid); margin-top: 2px; }
+.live-badge {
+  font-size: 9px; letter-spacing: 1.5px; color: var(--accent);
+  border: 1px solid rgba(184,255,87,0.3); padding: 3px 8px; border-radius: 3px;
+  text-transform: uppercase; display: flex; align-items: center; gap: 5px;
+}
+.live-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: pulse 2.5s ease-in-out infinite; }
+.demo-body { padding: 28px 24px; display: flex; flex-direction: column; gap: 12px; }
+.demo-headline { font-family: var(--display); font-size: 28px; font-weight: 900; letter-spacing: -1px; color: var(--text); cursor: default; line-height: 1.1; }
+.demo-subhead { font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text-mid); cursor: default; }
+.demo-body-text { font-family: var(--mono); font-size: 12px; color: var(--text-dim); line-height: 1.7; cursor: default; max-width: 420px; }
+.demo-hint { font-size: 11px; color: var(--accent); display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.demo-hint::before { content: '→'; }
+
+/* Footer */
+footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-left { font-size: 11px; color: var(--text-dim); }
+.footer-link { font-size: 10px; color: var(--text-dim); text-decoration: none; letter-spacing: 0.5px; transition: color 0.15s; }
+.footer-link:hover { color: var(--accent); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 540px) {
+  .page { padding: 32px 16px 80px; }
+  .shows-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Inspector overlay */
+#fi-overlay {
+  position: fixed; z-index: 2147483647;
+  background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 12px;
+  padding: 14px 16px; min-width: 240px; max-width: 300px;
+  pointer-events: none;
+  box-shadow: 0 16px 48px rgba(0,0,0,.7);
+  font-family: 'DM Mono', monospace; font-size: 12px; color: #efefef;
+  display: none;
+}
+#fi-overlay::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  border-radius: 12px 12px 0 0; background: #b8ff57;
+}
+.fi-header { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: #444; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.fi-badge { background: rgba(184,255,87,.1); color: #b8ff57; padding: 2px 7px; border-radius: 3px; font-size: 9px; }
+.fi-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #1a1a1a; }
+.fi-row:last-of-type { border-bottom: none; }
+.fi-key { color: #555; font-size: 10px; }
+.fi-val { color: #efefef; font-size: 11px; text-align: right; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fi-color-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; border: 1px solid rgba(255,255,255,.1); vertical-align: middle; }
+.fi-copy-btn { pointer-events: all; margin-top: 12px; width: 100%; background: rgba(184,255,87,.07); border: 1px solid rgba(184,255,87,.2); color: #b8ff57; font-family: inherit; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: 7px; border-radius: 6px; cursor: pointer; transition: background .15s; }
+.fi-copy-btn:hover { background: rgba(184,255,87,.14); }
+#fi-highlight { position: fixed; z-index: 2147483646; pointer-events: none; outline: 2px solid #b8ff57; outline-offset: 2px; border-radius: 3px; background: rgba(184,255,87,.04); display: none; }
+#fi-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px); background: rgba(184,255,87,.07); border: 1px solid #b8ff57; color: #b8ff57; font-family: 'DM Mono', monospace; font-size: 12px; padding: 10px 22px; border-radius: 8px; z-index: 2147483647; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; }
+#fi-exit { position: fixed; top: 16px; right: 16px; z-index: 2147483647; background: #0d0d0d; border: 1px solid #2a2a2a; color: #888; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .1em; padding: 7px 14px; border-radius: 6px; cursor: pointer; display: none; pointer-events: all; }
+#fi-exit:hover { color: #efefef; border-color: #444; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="header">
+    <div class="logo-row">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#050505" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4l6 18 3-7 7-3z"/>
+          <path d="M13 13l5 5"/>
+        </svg>
+      </div>
+      <span class="logo-text">FontPeek</span>
+      <span class="logo-version">v1.0</span>
+    </div>
+    <p class="header-desc">Hover over any element on any website and instantly reveal its typography — font family, weight, size, line-height and color. Copy as CSS with one click.</p>
+    <div class="trust-bar">
+      <div class="trust-pill"><span class="dot"></span> No installs</div>
+      <div class="trust-pill"><span class="dot"></span> Works on any site</div>
+      <div class="trust-pill"><span class="dot"></span> No tracking</div>
+      <div class="trust-pill"><span class="dot"></span> Open source</div>
+    </div>
+  </header>
+
+  <div class="bm-zone">
+    <p class="bm-sub">One click activates the inspector on any website.<br>No extension, no login, no server.</p>
+    <div class="bm-buttons">
+      <a class="bm-btn" id="bookmarklet-link" href="javascript:%28function%28%29%7Bif%28document.getElementById%28%22fp-ov%22%29%29return%3Bvar%20st%3Ddocument.createElement%28%22style%22%29%3Bst.textContent%3D%22%23fp-ov%7Bposition%3Afixed%3Bz-index%3A2147483647%3Bbackground%3A%230d0d0d%3Bborder%3A1px%20solid%20%232a2a2a%3Bborder-radius%3A12px%3Bpadding%3A14px%2016px%3Bmin-width%3A240px%3Bmax-width%3A300px%3Bpointer-events%3Anone%3Bbox-shadow%3A0%2016px%2048px%20rgba%280%2C0%2C0%2C.7%29%3Bfont-family%3A%27DM%20Mono%27%2Cmonospace%3Bfont-size%3A12px%3Bcolor%3A%23efefef%3Bdisplay%3Anone%3Btransition%3Abox-shadow%20.15s%3B%7D%22%2B%22%23fp-ov.locked%7Bpointer-events%3Aall%3Bborder-color%3A%23b8ff57%3Bbox-shadow%3A0%2016px%2048px%20rgba%280%2C0%2C0%2C.7%29%2C0%200%200%201px%20%23b8ff57%3B%7D%22%2B%22%23fp-ov%3A%3Abefore%7Bcontent%3A%27%27%3Bposition%3Aabsolute%3Btop%3A0%3Bleft%3A0%3Bright%3A0%3Bheight%3A2px%3Bborder-radius%3A12px%2012px%200%200%3Bbackground%3A%23b8ff57%3B%7D%22%2B%22%23fp-ov%20.fh%7Bfont-size%3A9px%3Bletter-spacing%3A.2em%3Btext-transform%3Auppercase%3Bcolor%3A%23444%3Bmargin-bottom%3A10px%3Bdisplay%3Aflex%3Balign-items%3Acenter%3Bjustify-content%3Aspace-between%3B%7D%22%2B%22%23fp-ov%20.fb%7Bbackground%3Argba%28184%2C255%2C87%2C.1%29%3Bcolor%3A%23b8ff57%3Bpadding%3A2px%207px%3Bborder-radius%3A3px%3Bfont-size%3A9px%3B%7D%22%2B%22%23fp-ov%20.fr%7Bdisplay%3Aflex%3Bjustify-content%3Aspace-between%3Bpadding%3A4px%200%3Bborder-bottom%3A1px%20solid%20%231a1a1a%3B%7D%22%2B%22%23fp-ov%20.fr%3Alast-of-type%7Bborder-bottom%3Anone%3B%7D%22%2B%22%23fp-ov%20.fk%7Bcolor%3A%23555%3Bfont-size%3A10px%3B%7D%22%2B%22%23fp-ov%20.fv%7Bcolor%3A%23efefef%3Bfont-size%3A11px%3Btext-align%3Aright%3Bmax-width%3A160px%3Boverflow%3Ahidden%3Btext-overflow%3Aellipsis%3Bwhite-space%3Anowrap%3B%7D%22%2B%22%23fp-ov%20.fd%7Bdisplay%3Ainline-block%3Bwidth%3A9px%3Bheight%3A9px%3Bborder-radius%3A50%25%3Bmargin-right%3A5px%3Bborder%3A1px%20solid%20rgba%28255%2C255%2C255%2C.1%29%3Bvertical-align%3Amiddle%3B%7D%22%2B%22%23fp-ov%20.fc%7Bpointer-events%3Aall%3Bmargin-top%3A12px%3Bwidth%3A100%25%3Bbackground%3Argba%28184%2C255%2C87%2C.07%29%3Bborder%3A1px%20solid%20rgba%28184%2C255%2C87%2C.2%29%3Bcolor%3A%23b8ff57%3Bfont-family%3Ainherit%3Bfont-size%3A10px%3Bletter-spacing%3A.1em%3Btext-transform%3Auppercase%3Bpadding%3A7px%3Bborder-radius%3A6px%3Bcursor%3Apointer%3B%7D%22%2B%22%23fp-ov%20.fhint%7Bfont-size%3A9px%3Bcolor%3A%23333%3Btext-align%3Acenter%3Bmargin-top%3A8px%3Bletter-spacing%3A.05em%3B%7D%22%2B%22%23fp-hl%7Bposition%3Afixed%3Bz-index%3A2147483646%3Bpointer-events%3Anone%3Boutline%3A2px%20solid%20%23b8ff57%3Boutline-offset%3A2px%3Bborder-radius%3A3px%3Bbackground%3Argba%28184%2C255%2C87%2C.04%29%3Bdisplay%3Anone%3B%7D%22%2B%22%23fp-t%7Bposition%3Afixed%3Bbottom%3A24px%3Bleft%3A50%25%3Btransform%3AtranslateX%28-50%25%29%20translateY%288px%29%3Bbackground%3Argba%28184%2C255%2C87%2C.07%29%3Bborder%3A1px%20solid%20%23b8ff57%3Bcolor%3A%23b8ff57%3Bfont-family%3A%27DM%20Mono%27%2Cmonospace%3Bfont-size%3A12px%3Bpadding%3A10px%2022px%3Bborder-radius%3A8px%3Bz-index%3A2147483647%3Bopacity%3A0%3Btransition%3Aopacity%20.2s%2Ctransform%20.2s%3Bpointer-events%3Anone%3B%7D%22%2B%22%23fp-x%7Bposition%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A2147483647%3Bbackground%3A%230d0d0d%3Bborder%3A1px%20solid%20%232a2a2a%3Bcolor%3A%23888%3Bfont-family%3A%27DM%20Mono%27%2Cmonospace%3Bfont-size%3A10px%3Bpadding%3A7px%2014px%3Bborder-radius%3A6px%3Bcursor%3Apointer%3B%7D%22%3Bdocument.head.appendChild%28st%29%3Bvar%20d%3Ddocument.createElement%28%22div%22%29%3Bd.id%3D%22fp-ov%22%3Bd.innerHTML%3D%22%3Cdiv%20class%3D%27fh%27%3E%3Cspan%3EFontPeek%3C%2Fspan%3E%3Cspan%20class%3D%27fb%27%20id%3D%27fp-badge%27%3EActive%3C%2Fspan%3E%3C%2Fdiv%3E%22%2B%22%3Cdiv%20class%3D%27fr%27%3E%3Cspan%20class%3D%27fk%27%3Efamily%3C%2Fspan%3E%3Cspan%20class%3D%27fv%27%20id%3D%27fp-f%27%3E%5Cu2014%3C%2Fspan%3E%3C%2Fdiv%3E%22%2B%22%3Cdiv%20class%3D%27fr%27%3E%3Cspan%20class%3D%27fk%27%3Eweight%3C%2Fspan%3E%3Cspan%20class%3D%27fv%27%20id%3D%27fp-w%27%3E%5Cu2014%3C%2Fspan%3E%3C%2Fdiv%3E%22%2B%22%3Cdiv%20class%3D%27fr%27%3E%3Cspan%20class%3D%27fk%27%3Esize%3C%2Fspan%3E%3Cspan%20class%3D%27fv%27%20id%3D%27fp-s%27%3E%5Cu2014%3C%2Fspan%3E%3C%2Fdiv%3E%22%2B%22%3Cdiv%20class%3D%27fr%27%3E%3Cspan%20class%3D%27fk%27%3Eline-height%3C%2Fspan%3E%3Cspan%20class%3D%27fv%27%20id%3D%27fp-l%27%3E%5Cu2014%3C%2Fspan%3E%3C%2Fdiv%3E%22%2B%22%3Cdiv%20class%3D%27fr%27%3E%3Cspan%20class%3D%27fk%27%3Eletter-spacing%3C%2Fspan%3E%3Cspan%20class%3D%27fv%27%20id%3D%27fp-ls%27%3E%5Cu2014%3C%2Fspan%3E%3C%2Fdiv%3E%22%2B%22%3Cdiv%20class%3D%27fr%27%3E%3Cspan%20class%3D%27fk%27%3Ecolor%3C%2Fspan%3E%3Cspan%20class%3D%27fv%27%20id%3D%27fp-c%27%3E%5Cu2014%3C%2Fspan%3E%3C%2Fdiv%3E%22%2B%22%3Cbutton%20class%3D%27fc%27%20id%3D%27fp-cp%27%3ECopy%20CSS%3C%2Fbutton%3E%22%2B%22%3Cdiv%20class%3D%27fhint%27%20id%3D%27fp-hint%27%3EClick%20any%20element%20to%20lock%3C%2Fdiv%3E%22%3Bdocument.body.appendChild%28d%29%3Bvar%20h%3Ddocument.createElement%28%22div%22%29%3Bh.id%3D%22fp-hl%22%3Bdocument.body.appendChild%28h%29%3Bvar%20t%3Ddocument.createElement%28%22div%22%29%3Bt.id%3D%22fp-t%22%3Bt.textContent%3D%22Copied%21%22%3Bdocument.body.appendChild%28t%29%3Bvar%20x%3Ddocument.createElement%28%22button%22%29%3Bx.id%3D%22fp-x%22%3Bx.textContent%3D%22%5Cu2715%20Exit%20FontPeek%22%3Bdocument.body.appendChild%28x%29%3Bx.style.display%3D%22block%22%3Bfunction%20r2h%28c%29%7Bvar%20m%3Dc.match%28%2F%28%5Cd%2B%29%2C%5Cs%2A%28%5Cd%2B%29%2C%5Cs%2A%28%5Cd%2B%29%2F%29%3Bif%28%21m%29return%20c%3Breturn%22%23%22%2B%5Bm%5B1%5D%2Cm%5B2%5D%2Cm%5B3%5D%5D.map%28function%28v%29%7Breturn%20parseInt%28v%29.toString%2816%29.padStart%282%2C%220%22%29%7D%29.join%28%22%22%29%3B%7Dvar%20css%3D%22%22%2Clocked%3Dfalse%2Cactive%3Dtrue%3Bfunction%20update%28el%2Cpx%2Cpy%29%7Bvar%20cs%3DgetComputedStyle%28el%29%3Bvar%20fam%3Dcs.fontFamily.split%28%22%2C%22%29%5B0%5D.replace%28%2F%5B%27%22%5D%2Fg%2C%22%22%29.trim%28%29%3Bdocument.getElementById%28%22fp-f%22%29.textContent%3Dfam%3Bdocument.getElementById%28%22fp-w%22%29.textContent%3Dcs.fontWeight%3Bdocument.getElementById%28%22fp-s%22%29.textContent%3Dcs.fontSize%3Bdocument.getElementById%28%22fp-l%22%29.textContent%3Dcs.lineHeight%3Bdocument.getElementById%28%22fp-ls%22%29.textContent%3Dcs.letterSpacing%3D%3D%3D%22normal%22%3F%220px%22%3Acs.letterSpacing%3Bvar%20hex%3Dr2h%28cs.color%29%3Bdocument.getElementById%28%22fp-c%22%29.innerHTML%3D%22%3Cspan%20class%3D%27fd%27%20style%3D%27background%3A%22%2Bhex%2B%22%27%3E%3C%2Fspan%3E%22%2Bhex%3Bcss%3D%22font-family%3A%20%22%2Bcs.fontFamily%2B%22%3B%5Cnfont-weight%3A%20%22%2Bcs.fontWeight%2B%22%3B%5Cnfont-size%3A%20%22%2Bcs.fontSize%2B%22%3B%5Cnline-height%3A%20%22%2Bcs.lineHeight%2B%22%3B%5Cnletter-spacing%3A%20%22%2Bcs.letterSpacing%2B%22%3B%5Cncolor%3A%20%22%2Bhex%2B%22%3B%22%3Bif%28px%21%3D%3Dnull%29%7Bvar%20ow%3Dd.offsetWidth%7C%7C260%2Coh%3Dd.offsetHeight%7C%7C180%3Bvar%20lx%3Dpx%2B16%2Cly%3Dpy%2B16%3Bif%28lx%2Bow%3Ewindow.innerWidth-16%29lx%3Dpx-ow-8%3Bif%28ly%2Boh%3Ewindow.innerHeight-16%29ly%3Dpy-oh-8%3Bd.style.left%3Dlx%2B%22px%22%3Bd.style.top%3Dly%2B%22px%22%3B%7Dd.style.display%3D%22block%22%3Bvar%20r%3Del.getBoundingClientRect%28%29%3Bh.style.cssText%3D%22position%3Afixed%3Bz-index%3A2147483646%3Bpointer-events%3Anone%3Boutline%3A2px%20solid%20%23b8ff57%3Boutline-offset%3A2px%3Bborder-radius%3A3px%3Bbackground%3Argba%28184%2C255%2C87%2C.04%29%3Bdisplay%3Ablock%3Bleft%3A%22%2Br.left%2B%22px%3Btop%3A%22%2Br.top%2B%22px%3Bwidth%3A%22%2Br.width%2B%22px%3Bheight%3A%22%2Br.height%2B%22px%3B%22%3B%7Ddocument.addEventListener%28%22mousemove%22%2Cfunction%28e%29%7Bif%28%21active%7C%7Clocked%29return%3Bvar%20el%3De.target%3Bif%28el%3D%3D%3Dd%7C%7Cd.contains%28el%29%7C%7Cel%3D%3D%3Dx%29return%3Bupdate%28el%2Ce.clientX%2Ce.clientY%29%3B%7D%29%3Bdocument.addEventListener%28%22click%22%2Cfunction%28e%29%7Bif%28%21active%29return%3Bif%28e.target%3D%3D%3Dx%29return%3Bif%28d.contains%28e.target%29%29return%3Be.preventDefault%28%29%3Be.stopPropagation%28%29%3Bif%28locked%29%7Blocked%3Dfalse%3Bd.classList.remove%28%22locked%22%29%3Bdocument.getElementById%28%22fp-badge%22%29.textContent%3D%22Active%22%3Bdocument.getElementById%28%22fp-hint%22%29.textContent%3D%22Click%20any%20element%20to%20lock%22%3B%7D%20else%20%7Blocked%3Dtrue%3Bd.classList.add%28%22locked%22%29%3Bdocument.getElementById%28%22fp-badge%22%29.textContent%3D%22Locked%22%3Bdocument.getElementById%28%22fp-hint%22%29.textContent%3D%22Click%20elsewhere%20to%20unlock%22%3Bupdate%28e.target%2Cnull%2Cnull%29%3B%7D%7D%2Ctrue%29%3Bdocument.getElementById%28%22fp-cp%22%29.addEventListener%28%22click%22%2Cfunction%28%29%7Bnavigator.clipboard.writeText%28css%29.then%28function%28%29%7Bt.style.opacity%3D%221%22%3Bt.style.transform%3D%22translateX%28-50%25%29%20translateY%280%29%22%3BsetTimeout%28function%28%29%7Bt.style.opacity%3D%220%22%3Bt.style.transform%3D%22translateX%28-50%25%29%20translateY%288px%29%22%3B%7D%2C1800%29%3B%7D%29%3B%7D%29%3Bfunction%20quit%28%29%7Bactive%3Dfalse%3Blocked%3Dfalse%3Bd.style.display%3D%22none%22%3Bh.style.display%3D%22none%22%3Bx.style.display%3D%22none%22%3B%7Ddocument.addEventListener%28%22keydown%22%2Cfunction%28e%29%7Bif%28e.key%3D%3D%3D%22Escape%22%29quit%28%29%3B%7D%29%3Bx.addEventListener%28%22click%22%2Cquit%29%3B%7D%29%28%29%3B" title="Drag to bookmarks bar">FontPeek</a>
+      <button class="bm-copy-btn" id="bm-copy">Copy code</button>
+    </div>
+    <div class="bm-hint" id="bm-hint-text">Chrome / Firefox: drag the button to your bookmarks bar &nbsp;·&nbsp; Safari: copy the code, create a new bookmark, paste as URL</div>
+  </div>
+
+  <div class="section-label" style="margin-top:40px;">How it works</div>
+  <div class="how-list" style="margin-bottom:40px;">
+    <div class="how-item">
+      <div class="how-num">01</div>
+      <div class="how-text"><strong>Add to your browser</strong><span>Chrome / Firefox: drag the FontPeek button to your bookmarks bar. Safari: click "Copy code", create a new bookmark, and paste the code as the URL.</span></div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">02</div>
+      <div class="how-text"><strong>Navigate to any other website</strong><span>Find a site with typography you want to inspect. The bookmarklet works on any page — not this one.</span></div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">03</div>
+      <div class="how-text"><strong>Click "FontPeek" in your bookmarks bar</strong><span>The inspector activates instantly on that page — no reload required.</span></div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">04</div>
+      <div class="how-text"><strong>Hover over any text element</strong><span>The panel follows your cursor and shows font family, weight, size, line-height, letter-spacing and hex color.</span></div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">05</div>
+      <div class="how-text"><strong>Click to lock — then hit "Copy CSS"</strong><span>Clicking any element freezes the panel so you can click "Copy CSS". Click again to unlock. Press Esc to exit.</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <div class="panel-head-text">
+        <div class="panel-head-title">What gets revealed</div>
+        <div class="panel-head-sub">All values read directly from computed CSS</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="shows-grid">
+        <div class="shows-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><polyline points="4,7 4,4 20,4 20,7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          <div><div class="shows-item-name">Font Family</div><div class="shows-item-eg">Unbounded, Inter, Georgia…</div></div>
+        </div>
+        <div class="shows-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="4" y1="20" x2="20" y2="20"/></svg>
+          <div><div class="shows-item-name">Font Weight</div><div class="shows-item-eg">400, 700, 900…</div></div>
+        </div>
+        <div class="shows-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div><div class="shows-item-name">Font Size</div><div class="shows-item-eg">14px, 1.2rem…</div></div>
+        </div>
+        <div class="shows-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <div><div class="shows-item-name">Line Height</div><div class="shows-item-eg">1.5, 24px, normal…</div></div>
+        </div>
+        <div class="shows-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+          <div><div class="shows-item-name">Letter Spacing</div><div class="shows-item-eg">0px, 0.05em, 2px…</div></div>
+        </div>
+        <div class="shows-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M3 12h.01M12 3v.01M21 12h-.01M12 21v-.01"/></svg>
+          <div><div class="shows-item-name">Color (hex)</div><div class="shows-item-eg">#efefef, #b8ff57…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-zone">
+    <div class="demo-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 4l6 18 3-7 7-3z"/><path d="M13 13l5 5"/></svg>
+      <div class="panel-head-text">
+        <div class="demo-head-title">Live demo</div>
+        <div class="demo-head-sub">Inspector is active — hover over the text below</div>
+      </div>
+      <div class="live-badge"><span class="dot"></span> Active</div>
+    </div>
+    <div class="demo-body" id="demo-area">
+      <div class="demo-headline">Inspect anything.</div>
+      <div class="demo-subhead">Hover each line to see the panel update.</div>
+      <div class="demo-body-text">This is body text set in DM Mono at 12px. Notice how the panel shows different values for each element — family, weight, size and color all change as you move between them.</div>
+      <div class="demo-hint">Hover the text above to try it</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-left">© 2026 FontPeek · Open source · MIT License</div>
+    <a class="footer-link" href="https://github.com/gitpushnico" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </footer>
+</div>
+
+<!-- Inspector UI -->
+<div id="fi-overlay">
+  <div class="fi-header"><span>FontPeek</span><span class="fi-badge">Active</span></div>
+  <div class="fi-row"><span class="fi-key">family</span><span class="fi-val" id="fi-family">—</span></div>
+  <div class="fi-row"><span class="fi-key">weight</span><span class="fi-val" id="fi-weight">—</span></div>
+  <div class="fi-row"><span class="fi-key">size</span><span class="fi-val" id="fi-size">—</span></div>
+  <div class="fi-row"><span class="fi-key">line-height</span><span class="fi-val" id="fi-lh">—</span></div>
+  <div class="fi-row"><span class="fi-key">letter-spacing</span><span class="fi-val" id="fi-ls">—</span></div>
+  <div class="fi-row"><span class="fi-key">color</span><span class="fi-val" id="fi-color">—</span></div>
+  <button class="fi-copy-btn" id="fi-copy">Copy CSS</button>
+</div>
+<div id="fi-highlight"></div>
+<div id="fi-toast">Copied to clipboard</div>
+<button id="fi-exit">✕ Exit</button>
+
+<script>
+(function() {
+  var demo = document.getElementById('demo-area');
+  var overlay = document.getElementById('fi-overlay');
+  var toast = document.getElementById('fi-toast');
+  var currentCSS = '';
+
+  function rgb2hex(rgb) {
+    var m = rgb.match(/(\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return rgb;
+    return '#' + [m[1],m[2],m[3]].map(function(v){ return parseInt(v).toString(16).padStart(2,'0'); }).join('');
+  }
+
+  function update(el) {
+    if (!el || el === overlay || overlay.contains(el)) return;
+    var cs = getComputedStyle(el);
+    var fam = cs.fontFamily.split(',')[0].replace(/['"]/g,'').trim();
+    document.getElementById('fi-family').textContent = fam;
+    document.getElementById('fi-weight').textContent = cs.fontWeight;
+    document.getElementById('fi-size').textContent = cs.fontSize;
+    document.getElementById('fi-lh').textContent = cs.lineHeight;
+    document.getElementById('fi-ls').textContent = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+    var hex = rgb2hex(cs.color);
+    document.getElementById('fi-color').innerHTML = '<span class="fi-color-dot" style="background:' + hex + '"></span>' + hex;
+    currentCSS = 'font-family: ' + cs.fontFamily + ';\nfont-weight: ' + cs.fontWeight + ';\nfont-size: ' + cs.fontSize + ';\nline-height: ' + cs.lineHeight + ';\nletter-spacing: ' + cs.letterSpacing + ';\ncolor: ' + hex + ';';
+  }
+
+  demo.addEventListener('mousemove', function(e) {
+    update(e.target);
+    var ow = overlay.offsetWidth || 260, oh = overlay.offsetHeight || 180;
+    var x = e.clientX + 16, y = e.clientY + 16;
+    if (x + ow > window.innerWidth - 16) x = e.clientX - ow - 8;
+    if (y + oh > window.innerHeight - 16) y = e.clientY - oh - 8;
+    overlay.style.left = x + 'px';
+    overlay.style.top = y + 'px';
+    overlay.style.display = 'block';
+  });
+
+  demo.addEventListener('mouseleave', function() { overlay.style.display = 'none'; });
+
+  document.getElementById('fi-copy').addEventListener('click', function() {
+    navigator.clipboard.writeText(currentCSS).then(function() {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(8px)';
+      }, 1800);
+    });
+  });
+})();
+
+// Build bookmarklet
+var bm = '(function(){if(document.getElementById("fp-ov"))return;var st=document.createElement("style");st.textContent="#fp-ov{position:fixed;z-index:2147483647;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:12px;padding:14px 16px;min-width:240px;max-width:300px;pointer-events:none;box-shadow:0 16px 48px rgba(0,0,0,.7);font-family:\'DM Mono\',monospace;font-size:12px;color:#efefef;display:none;transition:box-shadow .15s;}"+"#fp-ov.locked{pointer-events:all;border-color:#b8ff57;box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px #b8ff57;}"+"#fp-ov::before{content:\'\';position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0;background:#b8ff57;}"+"#fp-ov .fh{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#444;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}"+"#fp-ov .fb{background:rgba(184,255,87,.1);color:#b8ff57;padding:2px 7px;border-radius:3px;font-size:9px;}"+"#fp-ov .fr{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a1a1a;}"+"#fp-ov .fr:last-of-type{border-bottom:none;}"+"#fp-ov .fk{color:#555;font-size:10px;}"+"#fp-ov .fv{color:#efefef;font-size:11px;text-align:right;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}"+"#fp-ov .fd{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;border:1px solid rgba(255,255,255,.1);vertical-align:middle;}"+"#fp-ov .fc{pointer-events:all;margin-top:12px;width:100%;background:rgba(184,255,87,.07);border:1px solid rgba(184,255,87,.2);color:#b8ff57;font-family:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:7px;border-radius:6px;cursor:pointer;}"+"#fp-ov .fhint{font-size:9px;color:#333;text-align:center;margin-top:8px;letter-spacing:.05em;}"+"#fp-hl{position:fixed;z-index:2147483646;pointer-events:none;outline:2px solid #b8ff57;outline-offset:2px;border-radius:3px;background:rgba(184,255,87,.04);display:none;}"+"#fp-t{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:rgba(184,255,87,.07);border:1px solid #b8ff57;color:#b8ff57;font-family:\'DM Mono\',monospace;font-size:12px;padding:10px 22px;border-radius:8px;z-index:2147483647;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;}"+"#fp-x{position:fixed;top:16px;right:16px;z-index:2147483647;background:#0d0d0d;border:1px solid #2a2a2a;color:#888;font-family:\'DM Mono\',monospace;font-size:10px;padding:7px 14px;border-radius:6px;cursor:pointer;}";document.head.appendChild(st);var d=document.createElement("div");d.id="fp-ov";d.innerHTML="<div class=\'fh\'><span>FontPeek</span><span class=\'fb\' id=\'fp-badge\'>Active</span></div>"+"<div class=\'fr\'><span class=\'fk\'>family</span><span class=\'fv\' id=\'fp-f\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>weight</span><span class=\'fv\' id=\'fp-w\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>size</span><span class=\'fv\' id=\'fp-s\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>line-height</span><span class=\'fv\' id=\'fp-l\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>letter-spacing</span><span class=\'fv\' id=\'fp-ls\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>color</span><span class=\'fv\' id=\'fp-c\'>\\u2014</span></div>"+"<button class=\'fc\' id=\'fp-cp\'>Copy CSS</button>"+"<div class=\'fhint\' id=\'fp-hint\'>Click any element to lock</div>";document.body.appendChild(d);var h=document.createElement("div");h.id="fp-hl";document.body.appendChild(h);var t=document.createElement("div");t.id="fp-t";t.textContent="Copied!";document.body.appendChild(t);var x=document.createElement("button");x.id="fp-x";x.textContent="\\u2715 Exit FontPeek";document.body.appendChild(x);x.style.display="block";function r2h(c){var m=c.match(/(\\d+),\\s*(\\d+),\\s*(\\d+)/);if(!m)return c;return"#"+[m[1],m[2],m[3]].map(function(v){return parseInt(v).toString(16).padStart(2,"0")}).join("");}var css="",locked=false,active=true;function update(el,px,py){var cs=getComputedStyle(el);var fam=cs.fontFamily.split(",")[0].replace(/[\'"]/g,"").trim();document.getElementById("fp-f").textContent=fam;document.getElementById("fp-w").textContent=cs.fontWeight;document.getElementById("fp-s").textContent=cs.fontSize;document.getElementById("fp-l").textContent=cs.lineHeight;document.getElementById("fp-ls").textContent=cs.letterSpacing==="normal"?"0px":cs.letterSpacing;var hex=r2h(cs.color);document.getElementById("fp-c").innerHTML="<span class=\'fd\' style=\'background:"+hex+"\'></span>"+hex;css="font-family: "+cs.fontFamily+";\\nfont-weight: "+cs.fontWeight+";\\nfont-size: "+cs.fontSize+";\\nline-height: "+cs.lineHeight+";\\nletter-spacing: "+cs.letterSpacing+";\\ncolor: "+hex+";";if(px!==null){var ow=d.offsetWidth||260,oh=d.offsetHeight||180;var lx=px+16,ly=py+16;if(lx+ow>window.innerWidth-16)lx=px-ow-8;if(ly+oh>window.innerHeight-16)ly=py-oh-8;d.style.left=lx+"px";d.style.top=ly+"px";}d.style.display="block";var r=el.getBoundingClientRect();h.style.cssText="position:fixed;z-index:2147483646;pointer-events:none;outline:2px solid #b8ff57;outline-offset:2px;border-radius:3px;background:rgba(184,255,87,.04);display:block;left:"+r.left+"px;top:"+r.top+"px;width:"+r.width+"px;height:"+r.height+"px;";}document.addEventListener("mousemove",function(e){if(!active||locked)return;var el=e.target;if(el===d||d.contains(el)||el===x)return;update(el,e.clientX,e.clientY);});document.addEventListener("click",function(e){if(!active)return;if(e.target===x)return;if(d.contains(e.target))return;e.preventDefault();e.stopPropagation();if(locked){locked=false;d.classList.remove("locked");document.getElementById("fp-badge").textContent="Active";document.getElementById("fp-hint").textContent="Click any element to lock";} else {locked=true;d.classList.add("locked");document.getElementById("fp-badge").textContent="Locked";document.getElementById("fp-hint").textContent="Click elsewhere to unlock";update(e.target,null,null);}},true);document.getElementById("fp-cp").addEventListener("click",function(){navigator.clipboard.writeText(css).then(function(){t.style.opacity="1";t.style.transform="translateX(-50%) translateY(0)";setTimeout(function(){t.style.opacity="0";t.style.transform="translateX(-50%) translateY(8px)";},1800);});});function quit(){active=false;locked=false;d.style.display="none";h.style.display="none";x.style.display="none";}document.addEventListener("keydown",function(e){if(e.key==="Escape")quit();});x.addEventListener("click",quit);})();';
+
+document.getElementById('bm-copy').addEventListener('click', function() {
+  var code = 'javascript:' + encodeURIComponent(bm);
+  navigator.clipboard.writeText(code).then(function() {
+    var btn = document.getElementById('bm-copy');
+    btn.textContent = 'Copied!';
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.color = 'var(--accent)';
+    setTimeout(function() {
+      btn.textContent = 'Copy code';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 2000);
+  });
+});
+</script>
+
+</body>
+</html>
