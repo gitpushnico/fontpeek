@@ -4,7 +4,7 @@ Hover over any element on any website and instantly reveal its typography — fo
 
 A bookmarklet. No extension, no login, no server.
 
-**Live:** [fontpeek.vercel.app](https://fontpeek.vercel.app)
+**Live:** [fontpeek.xyz](https://fontpeek.xyz)
 
 ---
 
@@ -29,7 +29,7 @@ Nothing is sent anywhere. There is no backend.
 
 ## Setup
 
-1. Open [fontpeek.vercel.app](https://fontpeek.vercel.app) in your browser
+1. Open [fontpeek.xyz](https://fontpeek.xyz) in your browser
 2. **Chrome / Firefox:** drag the **FontPeek** button to your bookmarks bar
    **Safari:** click **Copy code**, create a new bookmark manually, and paste the code as the URL — name it "FontPeek"
 3. Navigate to any other website and click the bookmark to activate
