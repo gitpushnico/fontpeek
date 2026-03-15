@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FontPeek — Inspect Typography on Any Website</title>
+<meta name="description" content="Hover over any element on any website and instantly reveal its typography. 100% client-side bookmarklet — nothing leaves your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f6f4f0;
+  --surface: #ffffff;
+  --surface2: #f0eeea;
+  --border: #e6e3de;
+  --border2: #ddd9d2;
+  --accent: #0d9488;
+  --accent-dim: rgba(13,148,136,0.08);
+  --accent-glow: rgba(13,148,136,0.12);
+  --text: #1a1a1a;
+  --text-mid: #5c5c5c;
+  --text-dim: #8a8a8a;
+  --display: 'Fraunces', serif;
+  --sans: 'DM Sans', sans-serif;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.65;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 640px; margin: 0 auto; padding: 48px 24px 100px; }
+
+/* Hero — minimal, no trust bar */
+.hero { margin-bottom: 48px; animation: fadeUp 0.5s ease both; }
+.hero-brand { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.hero-title { font-family: var(--display); font-weight: 700; font-size: 28px; letter-spacing: -0.02em; color: var(--text); }
+.hero-version { font-family: var(--sans); font-size: 12px; color: var(--text-dim); font-weight: 500; }
+.hero-desc { color: var(--text-mid); font-size: 16px; line-height: 1.6; }
+
+/* Demo first — type specimen feel */
+.demo-section { margin-bottom: 40px; animation: fadeUp 0.5s 0.08s ease both; }
+.demo-zone { background: var(--surface); border-radius: 20px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+.demo-label { font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.demo-body { padding: 40px 32px; display: flex; flex-direction: column; gap: 16px; }
+.demo-headline { font-family: var(--display); font-size: 36px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); cursor: default; line-height: 1.1; }
+.demo-subhead { font-family: var(--display); font-size: 18px; font-weight: 600; color: var(--text-mid); cursor: default; }
+.demo-body-text { font-family: var(--sans); font-size: 15px; color: var(--text-mid); line-height: 1.7; cursor: default; max-width: 480px; }
+.demo-hint { font-size: 13px; color: var(--accent); font-weight: 500; }
+.demo-hint::before { content: '→ '; }
+.demo-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.demo-meta span { margin-right: 0.75em; }
+
+/* Take it with you — compact, no big dashed box */
+.take-section { margin-bottom: 40px; animation: fadeUp 0.5s 0.12s ease both; }
+.take-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.bm-btn {
+  display: inline-flex; align-items: center;
+  background: var(--accent); color: #fff;
+  font-family: var(--sans); font-weight: 600; font-size: 14px;
+  padding: 12px 22px; border-radius: 10px;
+  cursor: grab; text-decoration: none; border: none;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  user-select: none;
+  box-shadow: 0 2px 10px rgba(13,148,136,0.25);
+}
+.bm-btn:hover { background: #0fafa2; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,148,136,0.3); }
+.bm-btn:active { cursor: grabbing; transform: translateY(0); }
+.bm-copy-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  font-family: var(--sans); font-weight: 500; font-size: 13px;
+  padding: 12px 20px; border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.bm-copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.bm-hint { font-size: 13px; color: var(--text-dim); width: 100%; margin-top: 0; }
+
+/* How to use — short prose, no 01–05 list */
+.how-section { margin-bottom: 40px; animation: fadeUp 0.5s 0.16s ease both; }
+.how-title { font-family: var(--display); font-weight: 700; font-size: 18px; margin-bottom: 12px; color: var(--text); }
+.how-prose { font-size: 15px; color: var(--text-mid); line-height: 1.75; }
+.how-prose strong { color: var(--text); }
+
+/* Footer */
+footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-left { font-size: 13px; color: var(--text-dim); }
+.footer-link { font-size: 13px; color: var(--text-dim); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+.footer-link:hover { color: var(--accent); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 540px) {
+  .page { padding: 32px 18px 80px; }
+  .demo-body { padding: 28px 20px; }
+  .demo-headline { font-size: 28px; }
+}
+
+/* Inspector overlay */
+#fi-overlay {
+  position: fixed; z-index: 2147483647;
+  background: #fff; border: 1px solid #e6e3de; border-radius: 14px;
+  padding: 16px 18px; min-width: 240px; max-width: 300px;
+  pointer-events: none;
+  box-shadow: 0 20px 50px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.04);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1a1a1a;
+  display: none;
+}
+#fi-overlay::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 14px 14px 0 0; background: #0d9488;
+}
+.fi-header { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a8a8a; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; }
+.fi-badge { background: rgba(13,148,136,.1); color: #0d9488; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+.fi-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0eeea; }
+.fi-row:last-of-type { border-bottom: none; }
+.fi-key { color: #8a8a8a; font-size: 11px; }
+.fi-val { color: #1a1a1a; font-size: 12px; text-align: right; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.fi-color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; border: 1px solid rgba(0,0,0,.08); vertical-align: middle; }
+.fi-copy-btn { pointer-events: all; margin-top: 14px; width: 100%; background: rgba(13,148,136,.08); border: 1px solid rgba(13,148,136,.25); color: #0d9488; font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: background .2s, border-color .2s; }
+.fi-copy-btn:hover { background: rgba(13,148,136,.14); border-color: #0d9488; }
+#fi-highlight { position: fixed; z-index: 2147483646; pointer-events: none; outline: 2px solid #0d9488; outline-offset: 2px; border-radius: 4px; background: rgba(13,148,136,.06); display: none; }
+#fi-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(8px); background: #fff; border: 1px solid #0d9488; color: #0d9488; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 12px 24px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.1); z-index: 2147483647; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; }
+#fi-exit { position: fixed; top: 18px; right: 18px; z-index: 2147483647; background: #fff; border: 1px solid #e6e3de; color: #5c5c5c; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: none; pointer-events: all; box-shadow: 0 4px 16px rgba(0,0,0,.08); transition: color .2s, border-color .2s; }
+#fi-exit:hover { color: #1a1a1a; border-color: #0d9488; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="hero">
+    <div class="hero-brand">
+      <span class="hero-title">FontPeek</span>
+      <span class="hero-version">v2.0</span>
+    </div>
+    <p class="hero-desc">Hover over any text on any website and see its typography — family, weight, size, line-height, letter-spacing, color. Copy as CSS in one click. No install, no server.</p>
+  </header>
+
+  <section class="demo-section">
+    <p class="demo-label">Try it here</p>
+    <div class="demo-zone">
+      <div class="demo-body" id="demo-area">
+        <div class="demo-headline">Inspect anything.</div>
+        <div class="demo-subhead">Hover each line to see the panel update.</div>
+        <div class="demo-body-text">This is body text in DM Sans. Move between the lines above — the inspector shows different font values for each. Click an element to lock the panel, then use Copy CSS.</div>
+        <div class="demo-hint">Hover the text above</div>
+        <p class="demo-meta"><span>family</span><span>weight</span><span>size</span><span>line-height</span><span>letter-spacing</span><span>color</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="take-section">
+    <p class="demo-label">Use it on any site</p>
+    <div class="take-inner">
+      <a class="bm-btn" id="bookmarklet-link" href="#" title="Drag to bookmarks bar">FontPeek</a>
+      <button class="bm-copy-btn" id="bm-copy">Copy code</button>
+      <span class="bm-hint" id="bm-hint-text">Chrome & Firefox: drag to bookmarks bar. Safari: copy code → new bookmark → paste as URL.</span>
+    </div>
+  </section>
+
+  <section class="how-section">
+    <h2 class="how-title">How to use</h2>
+    <p class="how-prose">Drag the <strong>FontPeek</strong> button to your bookmarks bar (or save the code as a bookmark URL). On any website, click the bookmark to turn on the inspector. <strong>Hover</strong> over text to see its font details; <strong>click</strong> to lock the panel and hit <strong>Copy CSS</strong>. Click elsewhere to unlock. Press <strong>Esc</strong> to exit.</p>
+  </section>
+
+  <footer>
+    <div class="footer-left">© 2026 FontPeek · Open source · MIT</div>
+    <a class="footer-link" href="https://github.com/gitpushnico" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </footer>
+</div>
+
+<!-- Inspector UI -->
+<div id="fi-overlay">
+  <div class="fi-header"><span>FontPeek</span><span class="fi-badge">Active</span></div>
+  <div class="fi-row"><span class="fi-key">family</span><span class="fi-val" id="fi-family">—</span></div>
+  <div class="fi-row"><span class="fi-key">weight</span><span class="fi-val" id="fi-weight">—</span></div>
+  <div class="fi-row"><span class="fi-key">size</span><span class="fi-val" id="fi-size">—</span></div>
+  <div class="fi-row"><span class="fi-key">line-height</span><span class="fi-val" id="fi-lh">—</span></div>
+  <div class="fi-row"><span class="fi-key">letter-spacing</span><span class="fi-val" id="fi-ls">—</span></div>
+  <div class="fi-row"><span class="fi-key">color</span><span class="fi-val" id="fi-color">—</span></div>
+  <button class="fi-copy-btn" id="fi-copy">Copy CSS</button>
+</div>
+<div id="fi-highlight"></div>
+<div id="fi-toast">Copied to clipboard</div>
+<button id="fi-exit">✕ Exit</button>
+
+<script>
+(function() {
+  var demo = document.getElementById('demo-area');
+  var overlay = document.getElementById('fi-overlay');
+  var toast = document.getElementById('fi-toast');
+  var currentCSS = '';
+
+  function rgb2hex(rgb) {
+    var m = rgb.match(/(\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return rgb;
+    return '#' + [m[1],m[2],m[3]].map(function(v){ return parseInt(v).toString(16).padStart(2,'0'); }).join('');
+  }
+
+  function update(el) {
+    if (!el || el === overlay || overlay.contains(el)) return;
+    var cs = getComputedStyle(el);
+    var fam = cs.fontFamily.split(',')[0].replace(/['"]/g,'').trim();
+    document.getElementById('fi-family').textContent = fam;
+    document.getElementById('fi-weight').textContent = cs.fontWeight;
+    document.getElementById('fi-size').textContent = cs.fontSize;
+    document.getElementById('fi-lh').textContent = cs.lineHeight;
+    document.getElementById('fi-ls').textContent = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+    var hex = rgb2hex(cs.color);
+    document.getElementById('fi-color').innerHTML = '<span class="fi-color-dot" style="background:' + hex + '"></span>' + hex;
+    currentCSS = 'font-family: ' + cs.fontFamily + ';\nfont-weight: ' + cs.fontWeight + ';\nfont-size: ' + cs.fontSize + ';\nline-height: ' + cs.lineHeight + ';\nletter-spacing: ' + cs.letterSpacing + ';\ncolor: ' + hex + ';';
+  }
+
+  demo.addEventListener('mousemove', function(e) {
+    update(e.target);
+    var ow = overlay.offsetWidth || 260, oh = overlay.offsetHeight || 180;
+    var x = e.clientX + 16, y = e.clientY + 16;
+    if (x + ow > window.innerWidth - 16) x = e.clientX - ow - 8;
+    if (y + oh > window.innerHeight - 16) y = e.clientY - oh - 8;
+    overlay.style.left = x + 'px';
+    overlay.style.top = y + 'px';
+    overlay.style.display = 'block';
+  });
+
+  demo.addEventListener('mouseleave', function() { overlay.style.display = 'none'; });
+
+  document.getElementById('fi-copy').addEventListener('click', function() {
+    navigator.clipboard.writeText(currentCSS).then(function() {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(8px)';
+      }, 1800);
+    });
+  });
+})();
+
+// Build bookmarklet
+var bm = '(function(){if(document.getElementById("fp-ov"))return;var st=document.createElement("style");st.textContent="#fp-ov{position:fixed;z-index:2147483647;background:#ffffff;border:1px solid #e6e3de;border-radius:12px;padding:14px 16px;min-width:240px;max-width:300px;pointer-events:none;box-shadow:0 16px 48px rgba(0,0,0,.7);font-family:\'DM Sans\',sans-serif;font-size:12px;color:#1a1a1a;display:none;transition:box-shadow .15s;}"+"#fp-ov.locked{pointer-events:all;border-color:#0d9488;box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px #0d9488;}"+"#fp-ov::before{content:\'\';position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0;background:#0d9488;}"+"#fp-ov .fh{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#8a8a8a;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}"+"#fp-ov .fb{background:rgba(13,148,136,.1);color:#0d9488;padding:2px 7px;border-radius:3px;font-size:9px;}"+"#fp-ov .fr{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0eeea;}"+"#fp-ov .fr:last-of-type{border-bottom:none;}"+"#fp-ov .fk{color:#8a8a8a;font-size:10px;}"+"#fp-ov .fv{color:#1a1a1a;font-size:11px;text-align:right;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}"+"#fp-ov .fd{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;border:1px solid rgba(0,0,0,.08);vertical-align:middle;}"+"#fp-ov .fc{pointer-events:all;margin-top:12px;width:100%;background:rgba(13,148,136,.07);border:1px solid rgba(13,148,136,.2);color:#0d9488;font-family:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:7px;border-radius:6px;cursor:pointer;}"+"#fp-ov .fhint{font-size:9px;color:#8a8a8a;text-align:center;margin-top:8px;letter-spacing:.05em;}"+"#fp-hl{position:fixed;z-index:2147483646;pointer-events:none;outline:2px solid #0d9488;outline-offset:2px;border-radius:3px;background:rgba(13,148,136,.04);display:none;}"+"#fp-t{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:rgba(13,148,136,.07);border:1px solid #0d9488;color:#0d9488;font-family:\'DM Sans\',sans-serif;font-size:12px;padding:10px 22px;border-radius:8px;z-index:2147483647;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;}"+"#fp-x{position:fixed;top:16px;right:16px;z-index:2147483647;background:#ffffff;border:1px solid #e6e3de;color:#5c5c5c;font-family:\'DM Sans\',sans-serif;font-size:10px;padding:7px 14px;border-radius:6px;cursor:pointer;}";document.head.appendChild(st);var d=document.createElement("div");d.id="fp-ov";d.innerHTML="<div class=\'fh\'><span>FontPeek</span><span class=\'fb\' id=\'fp-badge\'>Active</span></div>"+"<div class=\'fr\'><span class=\'fk\'>family</span><span class=\'fv\' id=\'fp-f\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>weight</span><span class=\'fv\' id=\'fp-w\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>size</span><span class=\'fv\' id=\'fp-s\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>line-height</span><span class=\'fv\' id=\'fp-l\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>letter-spacing</span><span class=\'fv\' id=\'fp-ls\'>\\u2014</span></div>"+"<div class=\'fr\'><span class=\'fk\'>color</span><span class=\'fv\' id=\'fp-c\'>\\u2014</span></div>"+"<button class=\'fc\' id=\'fp-cp\'>Copy CSS</button>"+"<div class=\'fhint\' id=\'fp-hint\'>Click any element to lock</div>";document.body.appendChild(d);var h=document.createElement("div");h.id="fp-hl";document.body.appendChild(h);var t=document.createElement("div");t.id="fp-t";t.textContent="Copied!";document.body.appendChild(t);var x=document.createElement("button");x.id="fp-x";x.textContent="\\u2715 Exit FontPeek";document.body.appendChild(x);x.style.display="block";function r2h(c){var m=c.match(/(\\d+),\\s*(\\d+),\\s*(\\d+)/);if(!m)return c;return"#"+[m[1],m[2],m[3]].map(function(v){return parseInt(v).toString(16).padStart(2,"0")}).join("");}var css="",locked=false,active=true;function update(el,px,py){var cs=getComputedStyle(el);var fam=cs.fontFamily.split(",")[0].replace(/[\'"]/g,"").trim();document.getElementById("fp-f").textContent=fam;document.getElementById("fp-w").textContent=cs.fontWeight;document.getElementById("fp-s").textContent=cs.fontSize;document.getElementById("fp-l").textContent=cs.lineHeight;document.getElementById("fp-ls").textContent=cs.letterSpacing==="normal"?"0px":cs.letterSpacing;var hex=r2h(cs.color);document.getElementById("fp-c").innerHTML="<span class=\'fd\' style=\'background:"+hex+"\'></span>"+hex;css="font-family: "+cs.fontFamily+";\\nfont-weight: "+cs.fontWeight+";\\nfont-size: "+cs.fontSize+";\\nline-height: "+cs.lineHeight+";\\nletter-spacing: "+cs.letterSpacing+";\\ncolor: "+hex+";";if(px!==null){var ow=d.offsetWidth||260,oh=d.offsetHeight||180;var lx=px+16,ly=py+16;if(lx+ow>window.innerWidth-16)lx=px-ow-8;if(ly+oh>window.innerHeight-16)ly=py-oh-8;d.style.left=lx+"px";d.style.top=ly+"px";}d.style.display="block";var r=el.getBoundingClientRect();h.style.cssText="position:fixed;z-index:2147483646;pointer-events:none;outline:2px solid #0d9488;outline-offset:2px;border-radius:3px;background:rgba(13,148,136,.04);display:block;left:"+r.left+"px;top:"+r.top+"px;width:"+r.width+"px;height:"+r.height+"px;";}document.addEventListener("mousemove",function(e){if(!active||locked)return;var el=e.target;if(el===d||d.contains(el)||el===x)return;update(el,e.clientX,e.clientY);});document.addEventListener("click",function(e){if(!active)return;if(e.target===x)return;if(d.contains(e.target))return;e.preventDefault();e.stopPropagation();if(locked){locked=false;d.classList.remove("locked");document.getElementById("fp-badge").textContent="Active";document.getElementById("fp-hint").textContent="Click any element to lock";} else {locked=true;d.classList.add("locked");document.getElementById("fp-badge").textContent="Locked";document.getElementById("fp-hint").textContent="Click elsewhere to unlock";update(e.target,null,null);}},true);document.getElementById("fp-cp").addEventListener("click",function(){navigator.clipboard.writeText(css).then(function(){t.style.opacity="1";t.style.transform="translateX(-50%) translateY(0)";setTimeout(function(){t.style.opacity="0";t.style.transform="translateX(-50%) translateY(8px)";},1800);});});function quit(){active=false;locked=false;d.style.display="none";h.style.display="none";x.style.display="none";}document.addEventListener("keydown",function(e){if(e.key==="Escape")quit();});x.addEventListener("click",quit);})();';
+
+document.getElementById('bookmarklet-link').href = 'javascript:' + encodeURIComponent(bm);
+document.getElementById('bm-copy').addEventListener('click', function() {
+  var code = 'javascript:' + encodeURIComponent(bm);
+  navigator.clipboard.writeText(code).then(function() {
+    var btn = document.getElementById('bm-copy');
+    btn.textContent = 'Copied!';
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.color = 'var(--accent)';
+    setTimeout(function() {
+      btn.textContent = 'Copy code';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 2000);
+  });
+});
+</script>
+
+</body>
+</html>
