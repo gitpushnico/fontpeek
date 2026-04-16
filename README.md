@@ -1,73 +1,21 @@
-# FontPeek — Inspect Typography on Any Website
+# FontPeek
 
-Hover over any element on any website and instantly reveal its typography — font family, weight, size, line-height, letter-spacing and color. Copy as CSS with one click.
+Bookmarklet: hover text on any site for computed font, weight, size, line-height, letter-spacing, and color; **Copy CSS** in one click. Runs only in your browser — no account, no tracking.
 
-A bookmarklet. No extension, no login, no server.
+**Live:** [fontpeek.xyz](https://fontpeek.xyz).
 
-**Live:** [use-fontpeek.vercel.app](https://use-fontpeek.vercel.app)
+Made by [gitpushnico](https://github.com/gitpushnico).
 
----
+## Quick start
 
-## How it works
+- On the live site, add the bookmark: drag **FontPeek** to the bar (Chrome/Firefox) or **Copy code** → new bookmark URL (Safari).
+- Open any page and click the bookmark.
+- Hover for readouts; **Copy CSS** for the snippet. Click the panel to lock/unlock; **Esc** closes.
 
-Add FontPeek to your browser once (see Setup below). On any website, click FontPeek in your bookmarks bar to activate the inspector. Hover over any text element — the panel follows your cursor and shows all computed font values. Click any element to lock the panel in place, then hit "Copy CSS". Click again to unlock, or press Esc to exit.
+## How it’s built
 
-Nothing is sent anywhere. There is no backend.
-
----
-
-## What gets revealed
-
-- **Font Family** — the computed font name
-- **Font Weight** — 400, 700, 900…
-- **Font Size** — in px as computed by the browser
-- **Line Height** — px or unitless value
-- **Letter Spacing** — px or em
-- **Color** — converted to hex with a color preview dot
-
----
-
-## Setup
-
-1. Open [use-fontpeek.vercel.app](https://use-fontpeek.vercel.app) in your browser
-2. **Chrome / Firefox:** drag the **FontPeek** button to your bookmarks bar
-   **Safari:** click **Copy code**, create a new bookmark manually, and paste the code as the URL — name it "FontPeek"
-3. Navigate to any other website and click the bookmark to activate
-
-Works in Chrome, Firefox, and Safari.
-
----
-
-## Local Development
-
-```
-open index.html
-```
-
-Or:
-
-```
-npx serve .
-```
-
----
-
-## Project Structure
-
-```
-fontpeek/
-├── index.html      # Entire app — single file, no dependencies
-├── vercel.json     # Deployment config + security headers
-├── LICENSE         # MIT
-└── README.md       # This file
-```
-
----
+Single **index.html** (landing + bookmarklet) and **vercel.json** for static hosting — no build step. Locally: open `index.html` or `npx serve .` from the repo root.
 
 ## License
 
-MIT — free to use, modify, and deploy.
-
----
-
-Made by [@gitpushnico](https://github.com/gitpushnico)
+MIT — see `LICENSE`. Third-party assets and logo attribution are in `THIRD_PARTY_NOTICES.md`.
