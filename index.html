@@ -563,15 +563,19 @@ body {
     color var(--dur-fast) var(--ease-out-quart);
 }
 
-.privacy-banner {
-  margin-bottom: var(--sp-6);
+.privacy-box {
+  margin-top: 0;
   padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--r-md);
-  background: var(--bg-surface);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
-  font-size: var(--text-xs);
-  line-height: 1.6;
+  line-height: 1.5;
+}
+
+.privacy-label {
+  margin-top: var(--sp-6);
 }
 
 footer {
@@ -843,11 +847,11 @@ footer {
         </div>
         <span class="toolbox-arrow" aria-hidden="true">→</span>
       </a>
+      <p class="section-label privacy-label">Privacy</p>
+      <p class="privacy-box">No tracking cookies, no analytics, and no third-party scripts are used on this site. Just strictly necessary functionality is used to make the site work.</p>
     </section>
 
   </main>
-
-  <p class="privacy-banner">No tracking cookies, no analytics, no third-party scripts - only strictly necessary functionality.</p>
 
   <footer>
     <span class="footer-left">© 2026 FontPeek · MIT License</span>
