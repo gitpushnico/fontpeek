@@ -14,7 +14,7 @@ Made by [gitpushnico](https://github.com/gitpushnico).
 
 ## How it’s built
 
-Single **index.html** (landing + bookmarklet) and **vercel.json** for static hosting — no build step. Locally: open `index.html` or `npx serve .` from the repo root.
+**index.html** (landing + bookmarklet), **peek.css** (shared Peek design tokens — copy into [LayoutPeek](https://github.com/gitpushnico/layoutpeek)), and **vercel.json** for static hosting — no build step. Locally: open `index.html` or `npx serve .` from the repo root.
 
 ## License
 

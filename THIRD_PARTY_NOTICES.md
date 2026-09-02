@@ -2,21 +2,14 @@
 
 Assets listed here are **not** covered by the MIT License in `LICENSE`. Everything else in this repository is MIT-licensed unless stated otherwise.
 
-## `toolbox98.png`
+## `fonts/IBMPlexSans-Regular.woff2`, `fonts/IBMPlexSans-Italic.woff2`, `fonts/IBMPlexSans-Medium.woff2`
 
-- **Source:** W100-2 Design System by Gustavo Luz (Figma Community) — https://www.figma.com/community/file/1205445784466486810
-- **Author:** Gustavo Luz — https://www.figma.com/@gustaluz
-- **License:** CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
-- **Use here:** Exported and resized for the marketing page; attribution retained in this file.
+- **Source:** IBM Plex Sans — https://github.com/IBM/plex
+- **License:** SIL Open Font License 1.1 — see `fonts/OFL-IBMPlexSans.txt`
+- **Use here:** Self-hosted latin subset (woff2) used by the website (`@font-face` in `peek.css`).
 
-## `fonts/DMSans-VariableFont_opsz,wght.ttf`, `fonts/DMSans-Italic-VariableFont_opsz,wght.ttf`
+## `fonts/IBMPlexMono-Regular.woff2`, `fonts/IBMPlexMono-Medium.woff2`
 
-- **Source:** DM Sans (Google Fonts) — https://fonts.google.com/specimen/DM+Sans?preview.script=Latn
-- **License:** SIL Open Font License 1.1 — https://fonts.google.com/specimen/DM+Sans/license?preview.script=Latn
-- **Use here:** Self-hosted font files used by the website (`@font-face` in `index.html`).
-
-## `fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf`, `fonts/Fraunces-Italic-VariableFont_SOFT,WONK,opsz,wght.ttf`
-
-- **Source:** Fraunces (Google Fonts) — https://fonts.google.com/specimen/Fraunces?preview.script=Latn
-- **License:** SIL Open Font License 1.1 — https://fonts.google.com/specimen/Fraunces/license?preview.script=Latn
-- **Use here:** Self-hosted font files used by the website (`@font-face` in `index.html`).
+- **Source:** IBM Plex Mono — https://github.com/IBM/plex
+- **License:** SIL Open Font License 1.1 — see `fonts/OFL-IBMPlexMono.txt`
+- **Use here:** Self-hosted latin subset (woff2) used by the website (`@font-face` in `peek.css`).
