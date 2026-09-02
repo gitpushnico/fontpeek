@@ -149,7 +149,7 @@ body {
 
 .nav-family a,
 .nav-family span[aria-current] {
-  color: var(--faint);
+  color: var(--mute);
   text-decoration: none;
 }
 
@@ -178,7 +178,7 @@ body {
   font-size: 1.0625rem;
   color: var(--mute);
   line-height: 1.55;
-  max-width: 38ch;
+  max-width: 44ch;
   margin-bottom: 28px;
 }
 
@@ -218,7 +218,7 @@ body {
 .btn-install .hint {
   font-weight: 400;
   font-size: var(--text-xs);
-  color: var(--faint);
+  color: rgba(255, 253, 249, 0.5);
 }
 
 .btn-install:hover { opacity: 0.88; }
@@ -413,8 +413,8 @@ footer {
 
 .fi-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   margin-right: 6px;
   border: 1px solid var(--line);
   vertical-align: middle;
@@ -424,15 +424,18 @@ footer {
   pointer-events: all;
   margin-top: 12px;
   width: 100%;
-  background: var(--ink);
+  background: transparent;
   border: 1px solid var(--ink);
-  color: var(--surface);
+  color: var(--ink);
   font-size: var(--text-xs);
   padding: 8px;
   min-height: 36px;
 }
 
-.fi-copy:hover { opacity: 0.88; }
+.fi-copy:hover {
+  background: var(--ink);
+  color: var(--surface);
+}
 
 #fi-toast {
   position: fixed;
