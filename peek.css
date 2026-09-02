@@ -245,15 +245,13 @@ body {
 .btn-copy:focus,
 .fi-copy:focus,
 .nav-family a:focus,
-.footer a:focus,
-.also a:focus { outline: none; }
+.footer a:focus { outline: none; }
 
 .btn-install:focus-visible,
 .btn-copy:focus-visible,
 .fi-copy:focus-visible,
 .nav-family a:focus-visible,
-.footer a:focus-visible,
-.also a:focus-visible {
+.footer a:focus-visible {
   outline: 1px solid var(--mark);
   outline-offset: 3px;
 }
@@ -320,22 +318,6 @@ body {
 }
 
 .steps strong { color: var(--ink); font-weight: 500; }
-
-.also {
-  font-size: var(--text-sm);
-  color: var(--faint);
-  margin-bottom: 48px;
-}
-
-.also a {
-  color: var(--ink);
-  text-decoration: none;
-  border-bottom: 1px solid var(--line);
-}
-
-.also a:hover { border-bottom-color: var(--ink); }
-
-.also .sep { color: var(--line); margin: 0 8px; }
 
 footer {
   padding-top: 20px;
